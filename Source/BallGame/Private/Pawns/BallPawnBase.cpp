@@ -11,18 +11,16 @@ ABallPawnBase::ABallPawnBase()
 
 }
 
-// Called when the game starts or when spawned
-void ABallPawnBase::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
 void ABallPawnBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ABallPawnBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
 }
 
 // Called to bind functionality to input
