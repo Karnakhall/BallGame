@@ -1,14 +1,40 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Pawns/BallPawnBase.h"
+#include "Characters//BallPawnBase.h"
+#include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystem/AttributeSet/BallAttributeSetBase.h"
+#include "GameMode/BallGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABallPawnBase::ABallPawnBase()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	RootComponent = SphereComponent;
+	SphereComponent->SetSphereRadius(50.f);
+	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ABallPawnBase::OnSphereOverlap);
+
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComponent->SetupAttachment(RootComponent);
+	MeshComponent->SetSimulatePhysics(true); // Potrzebne do AddForce
+	MeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AttributeSet = CreateDefaultSubobject<UBallAttributeSetBase>(TEXT("AttributeSet"));
+}
+
+void ABallPawnBase::OnStrengthChanged(float NewStrength)
+{
+	float BaseScale = 1.0f;
+	float ScaleMultiplier = 0.1f;
+	float FinaleScale = BaseScale + (NewStrength * ScaleMultiplier);
+	SetActorScale3D(FVector(FinaleScale));
 }
 
 void ABallPawnBase::Tick(float DeltaTime)
@@ -23,10 +49,13 @@ void ABallPawnBase::BeginPlay()
 	
 }
 
+void ABallPawnBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+}
+
 // Called to bind functionality to input
 void ABallPawnBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
