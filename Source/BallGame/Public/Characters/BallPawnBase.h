@@ -47,7 +47,7 @@ protected:
 
 	// Obsługa kolizji
 	UFUNCTION()
-	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
 	                            AActor* OtherActor,
 	                            UPrimitiveComponent* OtherComp,
 	                            int32 OtherBodyIndex,
