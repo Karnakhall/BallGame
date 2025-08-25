@@ -75,7 +75,7 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 
 	if (PlayerStrength > EnemyStrength)
 	{
-		//Enemy->BeEatenBy(this);
+		Enemy->BeEaten(this);
 	}
 
 	ABallGameModeBase* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
@@ -85,7 +85,7 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	}
 	else
 	{
-		//Enemy->CollideWithStrongerPlayer(this);
+		Enemy->CollideWithStrongerPlayer(this);
 	}
 	
 }

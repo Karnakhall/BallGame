@@ -2,4 +2,65 @@
 
 
 #include "Characters/BallEnemy.h"
+#include "Characters/BallPlayer.h"
+#include "Kismet/GameplayStatics.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystem/AttributeSet/BallAttributeSetBase.h"
+#include "AIController.h"
+#include "NavigationSystem.h"
+
+
+ABallEnemy::ABallEnemy()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+}
+
+void ABallEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+}
+
+void ABallEnemy::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!PlayerPawn.IsValid()) return;
+
+	const float MyStrength = AttributeSet->GetStrength();
+
+	const UAbilitySystemComponent* PlayerASC = PlayerPawn->FindComponentByClass<UAbilitySystemComponent>();
+	if (!PlayerASC) return;
+
+	const float PlayerStrength = PlayerASC->GetNumericAttribute(UBallAttributeSetBase::GetStrengthAttribute());
+
+	FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
+
+	DirectionToPlayer.Z = 0;
+
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController)
+	{
+		if (MyStrength > PlayerStrength)  //Gonitwa
+		{
+			AIController->MoveToActor(PlayerPawn.Get(), 100.f)
+		}
+		else
+		{
+			FVector FleeLocation = GetActorLocation() - DirectionToPlayer.GetSafeNormal() * 1000.f;
+			//UNavigationSystemV1::SimpleMoveToLocation(AIController, FleeLocation);
+		}
+	}
+}
+
+void ABallEnemy::BeEaten(class ABallPlayer* Player)
+{
+}
+
+void ABallEnemy::CollideWithStrongerPlayer(class ABallPlayer* Player)
+{
+}
+
 
