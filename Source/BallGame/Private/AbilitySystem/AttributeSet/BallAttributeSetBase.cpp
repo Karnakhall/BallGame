@@ -33,10 +33,10 @@ void UBallAttributeSetBase::PostGameplayEffectExecute(const struct FGameplayEffe
 	{
 		if (GetStrength() <= 0.f || GetSpeed() <= 0.f)
 		{
-			AGameModeBase* GameMode = Cast<AGameModeBase>(UGameplayStatics::GetGameMode(TargetActor->GetWorld()));
+			ABallGameModeBase* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(TargetActor->GetWorld()));
 			if (GameMode)
 			{
-				//GameMode->HandlePlayerLoss();
+				GameMode->PlayerLoss();
 			}
 		}
 	}

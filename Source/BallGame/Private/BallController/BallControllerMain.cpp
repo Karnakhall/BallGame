@@ -38,7 +38,7 @@ void ABallControllerMain::PlayerTick(float DeltaTime)
 	if (bIsMoveKeyPressed && ControlledBall)
 	{
 		FVector MouseLocation, MouseDirection;
-		DeprojectMousePositionToWorld(MouseLocation, MouseDirection)
+		DeprojectMousePositionToWorld(MouseLocation, MouseDirection);
 
 		FVector GroundPlaneOrigin(0, 0, 0);
 		FVector GroundPlaneNormal(0, 0, 1);

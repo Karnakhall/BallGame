@@ -81,7 +81,7 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	ABallGameModeBase* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (GameMode)
 	{
-		//GameMode->HandleEnemyEaten();
+		GameMode->EnemyEaten();
 	}
 	else
 	{

@@ -8,6 +8,7 @@
 #include "AbilitySystem/AttributeSet/BallAttributeSetBase.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 
 
 ABallEnemy::ABallEnemy()
@@ -45,12 +46,12 @@ void ABallEnemy::Tick(float DeltaTime)
 	{
 		if (MyStrength > PlayerStrength)  //Gonitwa
 		{
-			AIController->MoveToActor(PlayerPawn.Get(), 100.f)
+			AIController->MoveToActor(PlayerPawn.Get(), 100.f);
 		}
 		else
 		{
 			FVector FleeLocation = GetActorLocation() - DirectionToPlayer.GetSafeNormal() * 1000.f;
-			//UNavigationSystemV1::SimpleMoveToLocation(AIController, FleeLocation);
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(AIController, FleeLocation);
 		}
 	}
 }
