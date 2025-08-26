@@ -57,10 +57,26 @@ void ABallEnemy::Tick(float DeltaTime)
 
 void ABallEnemy::BeEaten(class ABallPlayer* Player)
 {
+	UAbilitySystemComponent* PlayerASC = Player->GetAbilitySystemComponent();
+	if (PlayerASC && EffectToApply)
+	{
+		FGameplayEffectContextHandle ContextHandle = PlayerASC->MakeEffectContext();
+		ContextHandle.AddSourceObject(this);
+		FGameplayEffectSpecHandle SpecHandle = PlayerASC->MakeOutgoingSpec(EffectToApply, 1, ContextHandle);
+		if (SpecHandle.IsValid())
+		{
+			PlayerASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}
+	}
+	Destroy();
 }
 
 void ABallEnemy::CollideWithStrongerPlayer(class ABallPlayer* Player)
 {
+	if (EnemyType == EEnemyType::Purple_Damage)
+	{
+		BeEaten(Player);
+	}
 }
 
 

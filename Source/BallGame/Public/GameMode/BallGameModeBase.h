@@ -13,5 +13,19 @@ UCLASS()
 class BALLGAME_API ABallGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	void PlayerLoss();
+	void EnemyEaten();
+	void EnemySpawned();
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
 	
+	int32 EdibleEnemiesCount = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Rules")
+	int32 EnemiesToWin = 20;
 };
