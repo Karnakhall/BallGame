@@ -46,11 +46,14 @@ protected:
 	TArray<FEnemySpawnInfo> EnemySpawnPool;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | Scaling")
-	float SpawnScaling = 0.005f;
+	float StatsScaling = 0.005f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | Scaling")
-	float BaseSpeed = 10.0f;
+	float BaseStrength = 10.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | Scaling")
+	float BaseSpeed = 20.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | GAS")
 	TSubclassOf<UGameplayEffect> EnemyStatsEffect;
 	
