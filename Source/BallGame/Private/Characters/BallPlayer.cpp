@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
 #include "Characters/BallEnemy.h"
+#include "Components/SphereComponent.h"
 #include "GameMode/BallGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -34,7 +35,7 @@ void ABallPlayer::Tick(float DeltaTime)
 
 			float ForceMagnitude = 1000.f * (CurrentSpeed / CurrentStrength);
 
-			MeshComponent->AddForce(Direction * ForceMagnitude, NAME_None, true);
+			SphereComponent->AddForce(Direction * ForceMagnitude, NAME_None, true);
 		}
 	}
 }

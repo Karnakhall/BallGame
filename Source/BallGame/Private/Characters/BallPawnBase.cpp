@@ -18,12 +18,23 @@ ABallPawnBase::ABallPawnBase()
 	RootComponent = SphereComponent;
 	SphereComponent->SetSphereRadius(50.f);
 	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SphereComponent->SetCollisionObjectType(ECC_Pawn);
+	SphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	SphereComponent->SetSimulatePhysics(true);
+	SphereComponent->SetEnableGravity(true);
+	//SphereComponent->WakeAllRigidBodies();
+	SphereComponent->BodyInstance.bLockZTranslation = true;
+	SphereComponent->BodyInstance.bLockXRotation = false;
+	SphereComponent->BodyInstance.bLockYRotation = false;
+	//SphereComponent->BodyInstance.bLockZRotation = false;
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ABallPawnBase::OnSphereOverlap);
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetSimulatePhysics(true); // Potrzebne do AddForce
 	MeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
+	MeshComponent->SetSimulatePhysics(false);
+	
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AttributeSet = CreateDefaultSubobject<UBallAttributeSetBase>(TEXT("AttributeSet"));
