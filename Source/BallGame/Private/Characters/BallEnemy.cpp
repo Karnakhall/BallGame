@@ -50,8 +50,17 @@ void ABallEnemy::Tick(float DeltaTime)
 		}
 		else
 		{
-			FVector FleeLocation = GetActorLocation() - DirectionToPlayer.GetSafeNormal() * 1000.f;
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(AIController, FleeLocation);
+			FVector DirectionAwayFromPlayer = GetActorLocation() - PlayerPawn->GetActorLocation();
+			DirectionAwayFromPlayer.Z = 0; // Upewniamy się, że ucieka po płaszczyźnie
+			DirectionAwayFromPlayer.Normalize();
+
+			// Wyznaczamy punkt docelowy w pewnej odległości w kierunku ucieczki
+			FVector FleeLocation = GetActorLocation() + DirectionAwayFromPlayer * 1000.f; // 1000.f to dystans ucieczki
+
+			// Wydajemy komendę ruchu do tego punktu
+			AIController->MoveToLocation(FleeLocation);
+			/*FVector FleeLocation = GetActorLocation() - DirectionToPlayer.GetSafeNormal() * 1000.f;
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(AIController, FleeLocation);*/
 		}
 	}
 }
