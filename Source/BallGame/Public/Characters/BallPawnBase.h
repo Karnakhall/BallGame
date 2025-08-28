@@ -32,6 +32,7 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USphereComponent> SphereComponent;
@@ -44,6 +45,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UBallAttributeSetBase> AttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
+	bool bUsePhysicsMovement = true;
 
 	// Obsługa kolizji
 	UFUNCTION()

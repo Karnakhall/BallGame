@@ -35,6 +35,7 @@ void ABallPlayer::Tick(float DeltaTime)
 
 			float ForceMagnitude = 1000.f * (CurrentSpeed / CurrentStrength);
 
+			SphereComponent->WakeAllRigidBodies();
 			SphereComponent->AddForce(Direction * ForceMagnitude, NAME_None, true);
 		}
 	}
@@ -50,7 +51,7 @@ void ABallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (InitialEffect)
+	if (InitialEffect && AbilitySystemComponent)
 	{
 		FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
 		ContextHandle.AddSourceObject(this);
@@ -74,12 +75,13 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	const UBallAttributeSetBase* EnemyAttributeSet = Cast<UBallAttributeSetBase>(Enemy->GetAbilitySystemComponent()->GetAttributeSet(UBallAttributeSetBase::StaticClass()));
 	const float EnemyStrength = EnemyAttributeSet ? EnemyAttributeSet->GetStrength() : 0.f;
 
+	ABallGameModeBase* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	
 	if (PlayerStrength > EnemyStrength)
 	{
 		Enemy->BeEaten(this);
 	}
-
-	ABallGameModeBase* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	
 	if (GameMode)
 	{
 		GameMode->EnemyEaten();

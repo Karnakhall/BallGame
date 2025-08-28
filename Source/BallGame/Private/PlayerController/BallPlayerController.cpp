@@ -2,7 +2,6 @@
 
 
 #include "PlayerController/BallPlayerController.h"
-
 #include "Camera/CameraActor.h"
 #include "Characters/BallPlayer.h"
 #include "Kismet/GameplayStatics.h"
@@ -36,6 +35,11 @@ void ABallPlayerController::OnMoveKeyReleased() { bIsMoveKeyPressed = false; }
 void ABallPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
+
+	if (!ControlledBall)
+	{
+		ControlledBall = Cast<ABallPlayer>(GetPawn());
+	}
 	if (bIsMoveKeyPressed && ControlledBall)
 	{
 		FVector MouseLocation, MouseDirection;

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/BallPawnBase.h"
+#include "GameFramework/FloatingPawnMovement.h"
 #include "BallEnemy.generated.h"
 
 /**
@@ -27,19 +28,32 @@ public:
 	ABallEnemy();
 
 	virtual void Tick(float DeltaTime) override;
-
-	void BeEaten(class ABallPlayer* Player);
-
-	void CollideWithStrongerPlayer(class ABallPlayer* Player);
-
-protected:
 	virtual void BeginPlay() override;
 
+	void BeEaten(class ABallPlayer* Player);
+	void CollideWithStrongerPlayer(class ABallPlayer* Player);
+
+	UFUNCTION(BlueprintPure, Category = "Enemy")
+	EEnemyType GetEnemyType() const { return EnemyType; }
+	
+protected:
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
-	EEnemyType EnemyType;
+	EEnemyType EnemyType = EEnemyType::Red_Strength;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> EffectToApply;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement")
+	TObjectPtr<UFloatingPawnMovement> FloatingMovement;
+
+	
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float AISpeedScale = 80.f;
+
+	
+	UPROPERTY(EditAnywhere, Category="AI")
+	float StrengthHysteresis = 0.1f;
 
 private:
 	TWeakObjectPtr<APawn> PlayerPawn;
