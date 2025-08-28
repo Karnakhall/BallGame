@@ -21,7 +21,6 @@ public:
 
 	// Docelowa pozycja
 	void SetMoveTarget(const FVector& TargetLocation);
-	void UpdateScale(float NewStrength);
 
 protected:
 	virtual void BeginPlay() override;

@@ -70,7 +70,3 @@ void ABallPawnBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 }
 
-void ABallPawnBase::UpdateVisualScaleFromStrength()
-{
-}
-

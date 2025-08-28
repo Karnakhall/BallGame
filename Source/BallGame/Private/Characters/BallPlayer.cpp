@@ -46,16 +46,6 @@ void ABallPlayer::SetMoveTarget(const FVector& TargetLocation)
 	bIsMoving = true;
 }
 
-void ABallPlayer::UpdateScale(float NewStrength)
-{
-	float BaseScale = 1.0f;
-	float ScaleMultiplier = 0.05f;
-	float TargetScale = BaseScale + (NewStrength * ScaleMultiplier);
-
-	FVector NewScale = FVector(TargetScale);
-	SetActorScale3D(NewScale);
-}
-
 void ABallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
