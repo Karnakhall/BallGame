@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BallController/BallControllerMain.h"
+#include "PlayerController/BallPlayerController.h"
 
 #include "Camera/CameraActor.h"
 #include "Characters/BallPlayer.h"
 #include "Kismet/GameplayStatics.h"
 
-void ABallControllerMain::BeginPlay()
+void ABallPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	bShowMouseCursor = true;
@@ -21,18 +21,19 @@ void ABallControllerMain::BeginPlay()
 	}
 }
 
-void ABallControllerMain::SetupInputComponent()
+void ABallPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	InputComponent->BindAction(FName("Move"), IE_Pressed, this, &ABallControllerMain::OnMoveKeyPressed);
-	InputComponent->BindAction(FName("Move"), IE_Released, this, &ABallControllerMain::OnMoveKeyReleased);
+	InputComponent->BindAction(FName("Move"), IE_Pressed, this, &ABallPlayerController::OnMoveKeyPressed);
+	InputComponent->BindAction(FName("Move"), IE_Released, this, &ABallPlayerController::OnMoveKeyReleased);
+	
 }
 
-void ABallControllerMain::OnMoveKeyPressed() { bIsMoveKeyPressed = true; }
-void ABallControllerMain::OnMoveKeyReleased() { bIsMoveKeyPressed = false; }
+void ABallPlayerController::OnMoveKeyPressed() { bIsMoveKeyPressed = true; }
+void ABallPlayerController::OnMoveKeyReleased() { bIsMoveKeyPressed = false; }
 
-void ABallControllerMain::PlayerTick(float DeltaTime)
+void ABallPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 	if (bIsMoveKeyPressed && ControlledBall)

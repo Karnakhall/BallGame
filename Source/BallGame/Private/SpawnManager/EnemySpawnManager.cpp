@@ -87,6 +87,7 @@ void AEnemySpawnManager::SpawnEnemy()
 	RandomDirection.Normalize();
 
 	FVector SpawnLocation = PlayerLocation + RandomDirection * RandomDistance;
+	SpawnLocation.Z = PlayerLocation.Z;
 
 	// Spawnowanie
 	ABallEnemy* NewEnemy = GetWorld()->SpawnActor<ABallEnemy>(SelectedEnemyClass, SpawnLocation, FRotator::ZeroRotator);
