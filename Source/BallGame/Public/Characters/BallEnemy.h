@@ -13,9 +13,9 @@
 UENUM(BlueprintType)
 enum class EEnemyType : uint8
 {
-	Red_Strength,
-	Yellow_Speed,
-	Purple_Damage
+	Red_Strength UMETA(DisplayName="Red_Strength"),
+	Yellow_Speed UMETA(DisplayName="Yellow_Speed"),
+	Purple_Damage UMETA(DisplayName="Purple_Damage")
 };
 
 
