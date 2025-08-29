@@ -56,6 +56,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | GAS")
 	TSubclassOf<UGameplayEffect> EnemyStatsEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | Timing")
+	int32 TotalEnemiesToSpawn = -1;
 	
 private:
 	void SpawnEnemy();
@@ -63,4 +66,5 @@ private:
 	FTimerHandle SpawnTimerHandle;
 
 	TWeakObjectPtr<ABallGameModeBase> GameModeRef;
+	int32 SpawnedSoFar = 0;
 };

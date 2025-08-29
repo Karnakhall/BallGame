@@ -21,6 +21,7 @@ public:
 
 	// Docelowa pozycja
 	void SetMoveTarget(const FVector& TargetLocation);
+	void StopMoveInput();
 
 protected:
 	virtual void BeginPlay() override;

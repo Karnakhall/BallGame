@@ -26,18 +26,24 @@ void ABallPlayer::Tick(float DeltaTime)
 		FVector Direction = MoveTargetLocation - CurrentLocation;
 		Direction.Z = 0;
 
-		if (Direction.SizeSquared() > 100.f)
+		if (Direction.SizeSquared() <= 300.f)
 		{
-			Direction.Normalize();
-
-			const float CurrentSpeed = AttributeSet->GetSpeed();
-			const float CurrentStrength = FMath::Max(1.f, AttributeSet->GetStrength());
-
-			float ForceMagnitude = 1000.f * (CurrentSpeed / CurrentStrength);
-
-			SphereComponent->WakeAllRigidBodies();
-			SphereComponent->AddForce(Direction * ForceMagnitude, NAME_None, true);
+			StopMoveInput();
+			return;
 		}
+		Direction.Normalize();
+
+		const float CurrentSpeed = AttributeSet->GetSpeed();
+		const float CurrentStrength = FMath::Max(1.f, AttributeSet->GetStrength());
+
+		float ForceMagnitude = 10000.f * (CurrentSpeed / CurrentStrength);
+
+		SphereComponent->WakeAllRigidBodies();
+		SphereComponent->AddForce(Direction * ForceMagnitude, NAME_None, true);
+	}
+	else
+	{
+		
 	}
 }
 
@@ -45,6 +51,21 @@ void ABallPlayer::SetMoveTarget(const FVector& TargetLocation)
 {
 	MoveTargetLocation = TargetLocation;
 	bIsMoving = true;
+}
+
+void ABallPlayer::StopMoveInput()
+{
+	bIsMoving = false;
+
+	// lekkie “zduszenie” prędkości i obrotów
+	if (SphereComponent)
+	{
+		FVector V = SphereComponent->GetPhysicsLinearVelocity();
+		V.Z = 0; // 2D
+		SphereComponent->SetPhysicsLinearVelocity(V * 0.8f); // natychmiastowe ścięcie 80%
+		FVector AV = SphereComponent->GetPhysicsAngularVelocityInDegrees();
+		SphereComponent->SetPhysicsAngularVelocityInDegrees(AV * 0.8f);
+	}
 }
 
 void ABallPlayer::BeginPlay()
@@ -79,16 +100,16 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	
 	if (PlayerStrength > EnemyStrength)
 	{
+		const EEnemyType Type = Enemy->GetEnemyType();
 		Enemy->BeEaten(this);
-	}
-	
-	if (GameMode)
-	{
-		GameMode->EnemyEaten();
+		if (GameMode)
+		{
+			GameMode->EnemyEaten(Type);
+		}
 	}
 	else
 	{
 		Enemy->CollideWithStrongerPlayer(this);
 	}
-	
+	UE_LOG(LogTemp, Log, TEXT("Player overlap with %s"), *OtherActor->GetName());
 }

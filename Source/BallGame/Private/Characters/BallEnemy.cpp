@@ -5,6 +5,7 @@
 #include "Characters/BallPlayer.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/AttributeSet/BallAttributeSetBase.h"
+#include "Components/SphereComponent.h"
 #include "GameMode/BallGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -15,6 +16,7 @@ ABallEnemy::ABallEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	bUsePhysicsMovement = false;
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	
 	FloatingMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingMovement"));
 	FloatingMovement->bConstrainToPlane = true;
@@ -27,7 +29,7 @@ void ABallEnemy::BeginPlay()
 	Super::BeginPlay();
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
-	// Ustal płaszczyznę XY na wysokości gracza i skoryguj Z
+	/*// Ustal płaszczyznę XY na wysokości gracza i skoryguj Z
 	if (PlayerPawn.IsValid() && FloatingMovement)
 	{
 		FloatingMovement->SetPlaneConstraintOrigin(FVector(0,0, PlayerPawn->GetActorLocation().Z));
@@ -35,6 +37,32 @@ void ABallEnemy::BeginPlay()
 		FVector Location = GetActorLocation();
 		Location.Z = PlayerPawn->GetActorLocation().Z;
 		SetActorLocation(Location, false);
+	}*/
+
+	if (FloatingMovement)
+	{
+		// Bardzo ważne – inaczej AddMovementInput nic nie robi
+		FloatingMovement->SetUpdatedComponent(SphereComponent);
+
+		// Ruch w XY na stałej wysokości
+		FloatingMovement->bConstrainToPlane = true;
+		FloatingMovement->SetPlaneConstraintNormal(FVector::UpVector);
+
+		float TargetZ = GetActorLocation().Z;
+		if (PlayerPawn.IsValid())
+		{
+			TargetZ = PlayerPawn->GetActorLocation().Z;
+		}
+		FloatingMovement->SetPlaneConstraintOrigin(FVector(0, 0, TargetZ));
+		FloatingMovement->bSnapToPlaneAtStart = true; // wyrównaj Z do płaszczyzny
+	}
+
+	// skoryguj Z od razu po starcie
+	if (PlayerPawn.IsValid())
+	{
+		FVector L = GetActorLocation();
+		L.Z = PlayerPawn->GetActorLocation().Z;
+		SetActorLocation(L, false);
 	}
 }
 
@@ -55,7 +83,7 @@ void ABallEnemy::Tick(float DeltaTime)
 	FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
 	DirectionToPlayer.Z = 0;
 
-	const float Distance = DirectionToPlayer.SizeSquared2D()
+	const float Distance = DirectionToPlayer.SizeSquared2D();
 
 	if (Distance < KINDA_SMALL_NUMBER) return;
 	DirectionToPlayer.Normalize();
@@ -85,7 +113,7 @@ void ABallEnemy::BeEaten(class ABallPlayer* Player)
 			PlayerASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 		}
 	}
-	if (auto* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(this))) { GameMode->EnemyEaten(); }
+	if (auto* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(this))) { GameMode->EnemyEaten(EnemyType); }
 	Destroy();
 }
 

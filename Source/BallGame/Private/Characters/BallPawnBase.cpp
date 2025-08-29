@@ -20,6 +20,7 @@ ABallPawnBase::ABallPawnBase()
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	SphereComponent->SetCollisionObjectType(ECC_Pawn);
 	SphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	SphereComponent->SetGenerateOverlapEvents(true);
 	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ABallPawnBase::OnSphereOverlap);
 	
 	/*SphereComponent->BodyInstance.bLockZTranslation = true;

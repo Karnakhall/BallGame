@@ -30,7 +30,14 @@ void ABallPlayerController::SetupInputComponent()
 }
 
 void ABallPlayerController::OnMoveKeyPressed() { bIsMoveKeyPressed = true; }
-void ABallPlayerController::OnMoveKeyReleased() { bIsMoveKeyPressed = false; }
+void ABallPlayerController::OnMoveKeyReleased()
+{
+	bIsMoveKeyPressed = false;
+	if (ControlledBall)
+	{
+		ControlledBall->StopMoveInput();
+	}
+}
 
 void ABallPlayerController::PlayerTick(float DeltaTime)
 {
@@ -44,11 +51,13 @@ void ABallPlayerController::PlayerTick(float DeltaTime)
 	{
 		FVector MouseLocation, MouseDirection;
 		DeprojectMousePositionToWorld(MouseLocation, MouseDirection);
-
-		FVector GroundPlaneOrigin(0, 0, 0);
-		FVector GroundPlaneNormal(0, 0, 1);
-		FVector TargetLocation = FMath::LinePlaneIntersection(MouseLocation, MouseLocation + MouseDirection * 10000.f, GroundPlaneOrigin, GroundPlaneNormal);
-
-		ControlledBall->SetMoveTarget(TargetLocation);
-	} 
+		
+			const float PlaneZLocation = ControlledBall->GetActorLocation().Z;
+			const FVector GroundPlaneOrigin(0, 0, PlaneZLocation);
+			const FVector GroundPlaneNormal(0, 0, 1);
+			const FVector TargetLocation = FMath::LinePlaneIntersection(MouseLocation, MouseLocation + MouseDirection * 10000.f, GroundPlaneOrigin, GroundPlaneNormal);
+			ControlledBall->SetMoveTarget(TargetLocation);
+		
+	}
 }
+

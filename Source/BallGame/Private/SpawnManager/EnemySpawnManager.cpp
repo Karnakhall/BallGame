@@ -10,6 +10,8 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "GameplayTagsManager.h"
+#include "AbilitySystem/AttributeSet/BallAttributeSetBase.h"
+#include "Components/SphereComponent.h"
 
 AEnemySpawnManager::AEnemySpawnManager()
 {
@@ -36,6 +38,16 @@ void AEnemySpawnManager::BeginPlay()
 
 void AEnemySpawnManager::SpawnEnemy()
 {
+	if (TotalEnemiesToSpawn >= 0 && SpawnedSoFar >= TotalEnemiesToSpawn)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+		if (GameModeRef.IsValid())
+		{
+			GameModeRef->NotifySpawningFinished();
+		}
+		return;
+	}
+	
 	// Warunki początkowe
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (!PlayerPawn)
@@ -54,14 +66,21 @@ void AEnemySpawnManager::SpawnEnemy()
 	float TotalChance = 0.f;
 	for (const FEnemySpawnInfo& Info : EnemySpawnPool)
 	{
-		TotalChance += Info.SpawnChance;
+		if (Info.EnemyClass) { TotalChance += Info.SpawnChance; }
 	}
+	if (TotalChance <= 0.f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnManager: Brak prawidłowych klas w EnemySpawnPool!"))
+		return;
+	}
+	
 
 	float RandomValue = FMath::FRandRange(0.f, TotalChance);
-	TSubclassOf<ABallEnemy> SelectedEnemyClass;
+	TSubclassOf<ABallEnemy> SelectedEnemyClass = nullptr;
 
 	for (const FEnemySpawnInfo& Info : EnemySpawnPool)
 	{
+		if (!Info.EnemyClass) continue;
 		if (RandomValue <= Info.SpawnChance)
 		{
 			SelectedEnemyClass = Info.EnemyClass;
@@ -69,15 +88,14 @@ void AEnemySpawnManager::SpawnEnemy()
 		}
 		RandomValue -= Info.SpawnChance;
 	}
-
 	if (!SelectedEnemyClass)
 	{
 		SelectedEnemyClass = EnemySpawnPool[0].EnemyClass;
 	}
 
 	// Obliczenia miejsca Spawnu
-	FVector PlayerLocation = PlayerPawn->GetActorLocation();
-	float RandomDistance = FMath::FRandRange(SpawnRadiusMin, SpawnRadiusMax);
+	const FVector PlayerLocation = PlayerPawn->GetActorLocation();
+	const float RandomDistance = FMath::FRandRange(SpawnRadiusMin, SpawnRadiusMax);
 	FVector RandomDirection = FMath::VRand();
 	RandomDirection.Z = 0;
 	RandomDirection.Normalize();
@@ -85,8 +103,11 @@ void AEnemySpawnManager::SpawnEnemy()
 	FVector SpawnLocation = PlayerLocation + RandomDirection * RandomDistance;
 	SpawnLocation.Z = PlayerLocation.Z;
 
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
 	// Spawnowanie
-	ABallEnemy* NewEnemy = GetWorld()->SpawnActor<ABallEnemy>(SelectedEnemyClass, SpawnLocation, FRotator::ZeroRotator);
+	ABallEnemy* NewEnemy = GetWorld()->SpawnActor<ABallEnemy>(SelectedEnemyClass, SpawnLocation, FRotator::ZeroRotator, Params);
 	if (!NewEnemy)
 	{
 		UE_LOG(LogTemp, Error, TEXT("SpawnManager: Przeciwnik się nie zespawnował!"));
@@ -94,7 +115,7 @@ void AEnemySpawnManager::SpawnEnemy()
 	}
 
 	//Nadanie statystyk przez GAS
-	float DistanceFromOrigin = SpawnLocation.Size();
+	float DistanceFromOrigin = RandomDistance;
 	float CalculatedStrength = BaseStrength + (DistanceFromOrigin * StatsScaling);
 	float CalculatedSpeed = BaseSpeed + (DistanceFromOrigin * StatsScaling);
 
@@ -107,16 +128,54 @@ void AEnemySpawnManager::SpawnEnemy()
 
 		if (SpecHandle.IsValid())
 		{
-			SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Strength")), CalculatedStrength);
-			SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Speed")), CalculatedSpeed);
-			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			const FGameplayTag StrengthTag = FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Strength"), false);
+			const FGameplayTag SpeedTag = FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Speed"),    false);
+
+			bool bAppliedSetByCaller = false;
+
+			if (StrengthTag.IsValid() && SpeedTag.IsValid())
+			{
+				SpecHandle.Data->SetSetByCallerMagnitude(StrengthTag, CalculatedStrength);
+				SpecHandle.Data->SetSetByCallerMagnitude(SpeedTag, CalculatedSpeed);
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				bAppliedSetByCaller = true;
+			}
+			if (!bAppliedSetByCaller)
+			{
+				ASC->SetNumericAttributeBase(UBallAttributeSetBase::GetStrengthAttribute(), CalculatedStrength);
+				ASC->SetNumericAttributeBase(UBallAttributeSetBase::GetSpeedAttribute(), CalculatedSpeed);
+			}
 		}
 	}
 
+	if (NewEnemy && PlayerPawn)
+	{
+		const USphereComponent* PlayerSphere = Cast<USphereComponent>(Cast<ABallPawnBase>(PlayerPawn)->GetCollisionSphere());
+		const USphereComponent* EnemySphere  = NewEnemy->GetCollisionSphere();
+
+		const float PlayerRadius = PlayerSphere ? PlayerSphere->GetScaledSphereRadius() : 50.f;
+		const float EnemyRadius  = EnemySphere  ? EnemySphere->GetScaledSphereRadius()  : 50.f;
+
+		const float FloorZ = PlayerPawn->GetActorLocation().Z - PlayerRadius;
+		FVector L = NewEnemy->GetActorLocation();
+		L.Z = FloorZ + EnemyRadius;
+		NewEnemy->SetActorLocation(L, false);
+	}
+	
 	// Nowy przeciwnik informacja dla GameMode
 	if (GameModeRef.IsValid())
 	{
-		GameModeRef->EnemySpawned();
+		GameModeRef->EnemySpawned(NewEnemy->GetEnemyType());
+	}
+
+	++SpawnedSoFar;
+	if (TotalEnemiesToSpawn >= 0 && SpawnedSoFar >= TotalEnemiesToSpawn)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+		if (GameModeRef.IsValid())
+		{
+			GameModeRef->NotifySpawningFinished();
+		}
 	}
 	
 }
