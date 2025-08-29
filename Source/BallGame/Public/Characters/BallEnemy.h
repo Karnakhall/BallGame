@@ -35,6 +35,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Enemy")
 	EEnemyType GetEnemyType() const { return EnemyType; }
+
+	bool IsConsumed() const { return bConsumed;}
 	
 protected:
 
@@ -57,5 +59,7 @@ protected:
 
 private:
 	TWeakObjectPtr<APawn> PlayerPawn;
+
+	bool bConsumed = false;
 	
 };

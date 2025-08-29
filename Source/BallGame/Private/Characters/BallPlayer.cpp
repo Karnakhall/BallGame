@@ -90,7 +90,7 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	Super::OnSphereOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 	ABallEnemy* Enemy = Cast<ABallEnemy>(OtherActor);
-	if (!Enemy) return;
+	if (!Enemy || Enemy->IsActorBeingDestroyed() || Enemy->IsConsumed()) return;
 
 	const float PlayerStrength = AttributeSet->GetStrength();
 	const UBallAttributeSetBase* EnemyAttributeSet = Cast<UBallAttributeSetBase>(Enemy->GetAbilitySystemComponent()->GetAttributeSet(UBallAttributeSetBase::StaticClass()));

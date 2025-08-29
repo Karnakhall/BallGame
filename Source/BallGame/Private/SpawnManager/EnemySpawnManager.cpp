@@ -119,34 +119,40 @@ void AEnemySpawnManager::SpawnEnemy()
 	float CalculatedStrength = BaseStrength + (DistanceFromOrigin * StatsScaling);
 	float CalculatedSpeed = BaseSpeed + (DistanceFromOrigin * StatsScaling);
 
-	UAbilitySystemComponent* ASC = NewEnemy->GetAbilitySystemComponent();
-	if (ASC && EnemyStatsEffect)
+	if (UAbilitySystemComponent* ASC = NewEnemy->GetAbilitySystemComponent())
 	{
-		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-		ContextHandle.AddSourceObject(this);
-		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(EnemyStatsEffect, 1, ContextHandle);
-
-		if (SpecHandle.IsValid())
+		if ( EnemyStatsEffect)
 		{
-			const FGameplayTag StrengthTag = FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Strength"), false);
-			const FGameplayTag SpeedTag = FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Speed"),    false);
+			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+			ContextHandle.AddSourceObject(this);
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(EnemyStatsEffect, 1, ContextHandle);
 
-			bool bAppliedSetByCaller = false;
+			if (SpecHandle.IsValid())
+			{
+				const FGameplayTag StrengthTag = FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Strength"), false);
+				const FGameplayTag SpeedTag = FGameplayTag::RequestGameplayTag(FName("Data.Attribute.Speed"),    false);
 
-			if (StrengthTag.IsValid() && SpeedTag.IsValid())
-			{
-				SpecHandle.Data->SetSetByCallerMagnitude(StrengthTag, CalculatedStrength);
-				SpecHandle.Data->SetSetByCallerMagnitude(SpeedTag, CalculatedSpeed);
-				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-				bAppliedSetByCaller = true;
-			}
-			if (!bAppliedSetByCaller)
-			{
-				ASC->SetNumericAttributeBase(UBallAttributeSetBase::GetStrengthAttribute(), CalculatedStrength);
-				ASC->SetNumericAttributeBase(UBallAttributeSetBase::GetSpeedAttribute(), CalculatedSpeed);
+				//bool bAppliedSetByCaller = false;
+
+				if (StrengthTag.IsValid() && SpeedTag.IsValid())
+				{
+					SpecHandle.Data->SetSetByCallerMagnitude(StrengthTag, CalculatedStrength);
+					SpecHandle.Data->SetSetByCallerMagnitude(SpeedTag, CalculatedSpeed);
+
+					UE_LOG(LogTemp, Log, TEXT("Init enemy S=%.1f, V=%.1f"), CalculatedStrength, CalculatedSpeed);
+					ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+					//bAppliedSetByCaller = true;
+				}
+				else
+				{
+					ASC->SetNumericAttributeBase(UBallAttributeSetBase::GetStrengthAttribute(), CalculatedStrength);
+					ASC->SetNumericAttributeBase(UBallAttributeSetBase::GetSpeedAttribute(), CalculatedSpeed);
+					UE_LOG(LogTemp, Warning, TEXT("SetByCaller TAGS missing. Using fallback set base attributes."));
+				}
 			}
 		}
 	}
+	
 
 	if (NewEnemy && PlayerPawn)
 	{

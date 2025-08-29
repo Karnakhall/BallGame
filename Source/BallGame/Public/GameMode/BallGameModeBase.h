@@ -35,6 +35,7 @@ private:
 	
 	int32 EdibleEnemiesCount = 0;
 	bool bSpawningFinished = false;
+	bool bHasEnded = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Rules")
 	int32 EnemiesToWin = 20;

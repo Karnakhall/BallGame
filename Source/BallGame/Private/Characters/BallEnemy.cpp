@@ -14,13 +14,14 @@
 ABallEnemy::ABallEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
 	bUsePhysicsMovement = false;
+	
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	
 	FloatingMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingMovement"));
 	FloatingMovement->bConstrainToPlane = true;
 	FloatingMovement->SetPlaneConstraintNormal(FVector::UpVector);
+	FloatingMovement->bSnapToPlaneAtStart = true;
 	FloatingMovement->MaxSpeed = 600.f; // nadpiszemy w Tick
 }
 
@@ -29,7 +30,33 @@ void ABallEnemy::BeginPlay()
 	Super::BeginPlay();
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
-	/*// Ustal płaszczyznę XY na wysokości gracza i skoryguj Z
+	if (FloatingMovement)
+	{
+		FloatingMovement->SetUpdatedComponent(SphereComponent); // KLUCZOWE
+
+		const float Z = PlayerPawn.IsValid() ? PlayerPawn->GetActorLocation().Z : GetActorLocation().Z;
+		FloatingMovement->SetPlaneConstraintOrigin(FVector(0,0,Z));
+	}
+
+	if (PlayerPawn.IsValid())
+	{
+		FVector L = GetActorLocation(); L.Z = PlayerPawn->GetActorLocation().Z;
+		SetActorLocation(L, false);
+	}
+	/*FloatingMovement->SetUpdatedComponent(SphereComponent);
+
+	float TargetZ = GetActorLocation().Z;
+	if (PlayerPawn.IsValid())
+	{
+		TargetZ = PlayerPawn->GetActorLocation().Z;
+	}
+	FloatingMovement->SetPlaneConstraintOrigin(FVector(0,0,TargetZ));
+
+	// Korekta Z po starcie
+	FVector L = GetActorLocation();
+	L.Z = TargetZ;
+	SetActorLocation(L, false);*/
+	/* Ustal płaszczyznę XY na wysokości gracza i skoryguj Z
 	if (PlayerPawn.IsValid() && FloatingMovement)
 	{
 		FloatingMovement->SetPlaneConstraintOrigin(FVector(0,0, PlayerPawn->GetActorLocation().Z));
@@ -37,7 +64,7 @@ void ABallEnemy::BeginPlay()
 		FVector Location = GetActorLocation();
 		Location.Z = PlayerPawn->GetActorLocation().Z;
 		SetActorLocation(Location, false);
-	}*/
+	}
 
 	if (FloatingMovement)
 	{
@@ -63,14 +90,18 @@ void ABallEnemy::BeginPlay()
 		FVector L = GetActorLocation();
 		L.Z = PlayerPawn->GetActorLocation().Z;
 		SetActorLocation(L, false);
-	}
+	}*/
+	UE_LOG(LogTemp, Log, TEXT("ENEMY %s UpdatedComponent=%s SimPhys=%d"),
+	*GetName(),
+	FloatingMovement && FloatingMovement->UpdatedComponent ? *FloatingMovement->UpdatedComponent->GetName() : TEXT("None"),
+	SphereComponent->IsSimulatingPhysics());
 }
 
 void ABallEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!PlayerPawn.IsValid()) return;
+	if (!PlayerPawn.IsValid() || !FloatingMovement) return;
 
 	const float MyStrength = AttributeSet->GetStrength();
 	const float MySpeed = AttributeSet->GetSpeed();
@@ -82,26 +113,26 @@ void ABallEnemy::Tick(float DeltaTime)
 
 	FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
 	DirectionToPlayer.Z = 0;
-
-	const float Distance = DirectionToPlayer.SizeSquared2D();
-
-	if (Distance < KINDA_SMALL_NUMBER) return;
+	
+	if (DirectionToPlayer.SizeSquared2D() < KINDA_SMALL_NUMBER) return;
 	DirectionToPlayer.Normalize();
 
 	const bool bChase = (MyStrength > PlayerStrength + StrengthHysteresis);
 	const FVector MoveDirection = bChase ? DirectionToPlayer : -DirectionToPlayer;
 
 	// Prędkość zależna od atrybutu Speed
-	if (FloatingMovement)
-	{
-		FloatingMovement->MaxSpeed = FMath::Max(100.f, MySpeed * AISpeedScale);
-	}
-
+	FloatingMovement->MaxSpeed = FMath::Max(100.f, MySpeed * AISpeedScale);
 	AddMovementInput(MoveDirection, 1.f);
 }
 
 void ABallEnemy::BeEaten(class ABallPlayer* Player)
 {
+	if (bConsumed) return;
+	bConsumed = true;
+
+	if (SphereComponent)
+		SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	UAbilitySystemComponent* PlayerASC = Player ? Player->GetAbilitySystemComponent() : nullptr;
 	if (PlayerASC && EffectToApply)
 	{

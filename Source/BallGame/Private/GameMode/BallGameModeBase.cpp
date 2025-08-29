@@ -13,6 +13,9 @@ void ABallGameModeBase::BeginPlay()
 
 void ABallGameModeBase::PlayerLoss()
 {
+	if (bHasEnded) return;
+	bHasEnded = true;
+	
 	UE_LOG(LogTemp, Warning, TEXT("GAME OVER!"));
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }
@@ -44,8 +47,11 @@ void ABallGameModeBase::NotifySpawningFinished()
 
 void ABallGameModeBase::CheckWinCondition()
 {
+	if (bHasEnded) return;
+	
 	if (bSpawningFinished && EdibleEnemiesCount <= 0)
 	{
+		bHasEnded = true;
 		UE_LOG(LogTemp, Warning, TEXT("YOU WIN!"));
 		UGameplayStatics::SetGamePaused(GetWorld(), true);
 	}
