@@ -43,54 +43,7 @@ void ABallEnemy::BeginPlay()
 		FVector L = GetActorLocation(); L.Z = PlayerPawn->GetActorLocation().Z;
 		SetActorLocation(L, false);
 	}
-	/*FloatingMovement->SetUpdatedComponent(SphereComponent);
-
-	float TargetZ = GetActorLocation().Z;
-	if (PlayerPawn.IsValid())
-	{
-		TargetZ = PlayerPawn->GetActorLocation().Z;
-	}
-	FloatingMovement->SetPlaneConstraintOrigin(FVector(0,0,TargetZ));
-
-	// Korekta Z po starcie
-	FVector L = GetActorLocation();
-	L.Z = TargetZ;
-	SetActorLocation(L, false);*/
-	/* Ustal płaszczyznę XY na wysokości gracza i skoryguj Z
-	if (PlayerPawn.IsValid() && FloatingMovement)
-	{
-		FloatingMovement->SetPlaneConstraintOrigin(FVector(0,0, PlayerPawn->GetActorLocation().Z));
-
-		FVector Location = GetActorLocation();
-		Location.Z = PlayerPawn->GetActorLocation().Z;
-		SetActorLocation(Location, false);
-	}
-
-	if (FloatingMovement)
-	{
-		// Bardzo ważne – inaczej AddMovementInput nic nie robi
-		FloatingMovement->SetUpdatedComponent(SphereComponent);
-
-		// Ruch w XY na stałej wysokości
-		FloatingMovement->bConstrainToPlane = true;
-		FloatingMovement->SetPlaneConstraintNormal(FVector::UpVector);
-
-		float TargetZ = GetActorLocation().Z;
-		if (PlayerPawn.IsValid())
-		{
-			TargetZ = PlayerPawn->GetActorLocation().Z;
-		}
-		FloatingMovement->SetPlaneConstraintOrigin(FVector(0, 0, TargetZ));
-		FloatingMovement->bSnapToPlaneAtStart = true; // wyrównaj Z do płaszczyzny
-	}
-
-	// skoryguj Z od razu po starcie
-	if (PlayerPawn.IsValid())
-	{
-		FVector L = GetActorLocation();
-		L.Z = PlayerPawn->GetActorLocation().Z;
-		SetActorLocation(L, false);
-	}*/
+	
 	UE_LOG(LogTemp, Log, TEXT("ENEMY %s UpdatedComponent=%s SimPhys=%d"),
 	*GetName(),
 	FloatingMovement && FloatingMovement->UpdatedComponent ? *FloatingMovement->UpdatedComponent->GetName() : TEXT("None"),

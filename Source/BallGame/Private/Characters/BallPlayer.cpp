@@ -72,6 +72,8 @@ void ABallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	
+
 	if (InitialEffect && AbilitySystemComponent)
 	{
 		FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
