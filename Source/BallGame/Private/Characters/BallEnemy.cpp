@@ -133,17 +133,20 @@ void ABallEnemy::BeEaten(class ABallPlayer* Player)
 	if (SphereComponent)
 		SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
-	UAbilitySystemComponent* PlayerASC = Player ? Player->GetAbilitySystemComponent() : nullptr;
-	if (PlayerASC && EffectToApply)
+	if (UAbilitySystemComponent* PlayerASC = Player ? Player->GetAbilitySystemComponent() : nullptr)
 	{
-		FGameplayEffectContextHandle ContextHandle = PlayerASC->MakeEffectContext();
-		ContextHandle.AddSourceObject(this);
-		FGameplayEffectSpecHandle SpecHandle = PlayerASC->MakeOutgoingSpec(EffectToApply, 1, ContextHandle);
-		if (SpecHandle.IsValid())
+		if (EffectToApply)
 		{
-			PlayerASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			FGameplayEffectContextHandle ContextHandle = PlayerASC->MakeEffectContext();
+			ContextHandle.AddSourceObject(this);
+			FGameplayEffectSpecHandle SpecHandle = PlayerASC->MakeOutgoingSpec(EffectToApply, 1, ContextHandle);
+			if (SpecHandle.IsValid())
+			{
+				PlayerASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
 		}
 	}
+	SetLifeSpan(0.01f);
 	if (auto* GameMode = Cast<ABallGameModeBase>(UGameplayStatics::GetGameMode(this))) { GameMode->EnemyEaten(EnemyType); }
 	Destroy();
 }

@@ -102,10 +102,8 @@ void ABallPlayer::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	{
 		const EEnemyType Type = Enemy->GetEnemyType();
 		Enemy->BeEaten(this);
-		if (GameMode)
-		{
-			GameMode->EnemyEaten(Type);
-		}
+
+		if (GameMode) { GameMode->EnemyEaten(Type); }
 	}
 	else
 	{
