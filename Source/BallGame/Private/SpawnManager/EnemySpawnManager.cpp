@@ -97,12 +97,12 @@ void AEnemySpawnManager::SpawnEnemy()
 		SelectedEnemyClass = EnemySpawnPool[0].EnemyClass;
 	}
 
-	// Wyznacz legalną pozycję spawnu (z granicami)
+	// Wyznacz pozycję spawnu (z granicami)
 	FVector SpawnLocation;
 	float DistanceFromPlayer = 0.f;
 	if (!GetRandomSpawnLocation(SpawnLocation, DistanceFromPlayer))
 	{
-		// Brak legalnego punktu w tej turze (np. przy rogu) – po prostu pomiń spawn
+		// Brak punktu w tej turze (np. przy rogu) – po prostu pomiń spawn
 		return;
 	}
 
@@ -198,7 +198,6 @@ void AEnemySpawnManager::CacheFloorBounds()
 
 	if (FloorActor.IsValid())
 	{
-		// AABB wszystkich komponentów aktora (world-space)
 		CachedFloorBounds = FloorActor->GetComponentsBoundingBox(true);
 		FloorTopZ = CachedFloorBounds.Max.Z;
 
@@ -304,7 +303,7 @@ bool AEnemySpawnManager::GetRandomSpawnLocation(FVector& OutLocation, float& Out
 		// w przeciwnym razie – próbuj dalej
 	}
 
-	return false; // brak legalnego punktu (np. stoisz w samym rogu)
+	return false; // brak odpowiedniego punktu (np. stoisz w samym rogu)
 }
 
 

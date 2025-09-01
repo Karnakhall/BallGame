@@ -67,7 +67,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
 	float EdgePadding = 150.f;
 	
-	// 1) Referencja do podłogi (wskazujesz w edytorze aktora Floor/Plane/Landscape)
+	// Referencja do podłogi (wskazujesz w edytorze aktora Floor/Plane/Landscape)
 	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
 	TWeakObjectPtr<AActor> FloorActor;
 	

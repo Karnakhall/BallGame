@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
 #include "Characters/BallEnemy.h"
-#include "Components/SphereComponent.h"
 #include "GameMode/BallGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -40,33 +39,24 @@ ABallPlayer::ABallPlayer()
 
 void ABallPlayer::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-
+	// Najpierw policz kierunek i przekaż input do bazy…
 	if (bIsMoving)
 	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector Direction = MoveTargetLocation - CurrentLocation;
-		Direction.Z = 0;
-
-		if (Direction.SizeSquared() <= 300.f)
+		FVector Dir = MoveTargetLocation - GetActorLocation();
+		Dir.Z = 0.f;
+		if (Dir.SizeSquared() <= FMath::Square(StopDistance))
 		{
-			StopMoveInput();
-			return;
+			StopMoveInput(); // soft stop
 		}
-		Direction.Normalize();
-
-		const float CurrentSpeed = AttributeSet->GetSpeed();
-		const float CurrentStrength = FMath::Max(1.f, AttributeSet->GetStrength());
-
-		float ForceMagnitude = 10000.f * (CurrentSpeed / CurrentStrength);
-
-		SphereComponent->WakeAllRigidBodies();
-		SphereComponent->AddForce(Direction * ForceMagnitude, NAME_None, true);
+		else
+		{
+			Dir.Normalize();
+			AddMoveInput2D(Dir, 1.f);
+		}
 	}
-	else
-	{
-		
-	}
+
+	// …a dopiero potem Super::Tick, żeby baza przetworzyła PendingMoveInput2D
+	Super::Tick(DeltaTime);
 }
 
 void ABallPlayer::SetMoveTarget(const FVector& TargetLocation)
@@ -78,16 +68,7 @@ void ABallPlayer::SetMoveTarget(const FVector& TargetLocation)
 void ABallPlayer::StopMoveInput()
 {
 	bIsMoving = false;
-
-	// lekkie “zduszenie” prędkości i obrotów
-	if (SphereComponent)
-	{
-		FVector V = SphereComponent->GetPhysicsLinearVelocity();
-		V.Z = 0; // 2D
-		SphereComponent->SetPhysicsLinearVelocity(V * 0.8f); // natychmiastowe ścięcie 80%
-		FVector AV = SphereComponent->GetPhysicsAngularVelocityInDegrees();
-		SphereComponent->SetPhysicsAngularVelocityInDegrees(AV * 0.8f);
-	}
+	ABallPawnBase::StopMoveInput(false); // czyści input + przydusza prędkość
 }
 
 void ABallPlayer::BeginPlay()

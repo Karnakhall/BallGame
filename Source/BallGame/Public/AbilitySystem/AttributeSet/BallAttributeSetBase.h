@@ -58,7 +58,7 @@ public:
 	float GetSpeedPct() const { return (GetMaxSpeed() > 0.f) ? GetSpeed() / GetMaxSpeed() : 0.f; }
 
 private:
-	// Utrzymaj ten sam procent, gdy zmienia się Max (np. Health pattern)
+	// Utrzymaj ten sam procent
 	void AdjustAttributeForMaxChange(const FGameplayAttribute& AffectedAttribute,
 		const FGameplayAttributeData& CurrentValue, const FGameplayAttributeData& MaxValue, float NewMaxValue);
 

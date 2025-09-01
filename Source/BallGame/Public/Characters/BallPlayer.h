@@ -21,11 +21,15 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere) USpringArmComponent* Camera;
-	UPROPERTY(VisibleAnywhere) UCameraComponent* OrthoCamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera")
+	USpringArmComponent* Camera;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Camera")
+	UCameraComponent* OrthoCamera;
 	
 	// Docelowa pozycja
 	void SetMoveTarget(const FVector& TargetLocation);
+	
 	void StopMoveInput();
 
 protected:
@@ -41,6 +45,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> InitialEffect;
 
+	// Opcjonalny autostop przy celu (uu)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
+	float StopDistance = 120.f;
+	
 private:
 	FVector MoveTargetLocation;
 	bool bIsMoving = false;

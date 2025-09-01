@@ -2,9 +2,8 @@
 
 
 #include "PlayerController/BallPlayerController.h"
-#include "Camera/CameraActor.h"
 #include "Characters/BallPlayer.h"
-#include "Kismet/GameplayStatics.h"
+
 
 void ABallPlayerController::BeginPlay()
 {
@@ -14,11 +13,6 @@ void ABallPlayerController::BeginPlay()
 	ControlledBall = Cast<ABallPlayer>(GetPawn());
 
 	SetViewTarget(ControlledBall);
-	/*ACameraActor* MainCamera = Cast<ACameraActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass()));
-	if (MainCamera)
-	{
-		SetViewTarget(MainCamera);
-	}*/
 }
 
 void ABallPlayerController::SetupInputComponent()

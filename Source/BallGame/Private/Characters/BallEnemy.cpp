@@ -8,29 +8,11 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-static FORCEINLINE FVector Dir2D(const FVector& From, const FVector& To)
-{
-	FVector D = To - From;
-	D.Z = 0.f;
-	const float S2 = D.SizeSquared();
-	if (S2 <= KINDA_SMALL_NUMBER) return FVector::ZeroVector;
-	return D / FMath::Sqrt(S2);
-}
-
 ABallEnemy::ABallEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bUsePhysicsMovement = true;
-
-	if (SphereComponent)
-	{
-		SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		SphereComponent->SetCollisionObjectType(ECC_Pawn);
-		SphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);   // z innymi kulami – overlap
-		SphereComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block); // podłoga – block
-		SphereComponent->SetLinearDamping(1.0f);
-		SphereComponent->SetAngularDamping(0.6f);
-	}
+	
 }
 
 void ABallEnemy::BeginPlay()
@@ -46,93 +28,80 @@ void ABallEnemy::BeginPlay()
 	}
 }
 
-float ABallEnemy::ComputeAccelFromAttributes() const
-{
-	const float Spd = AttributeSet ? AttributeSet->GetSpeed() : 0.f;
-	const float Str = AttributeSet ? AttributeSet->GetStrength() : 1.f;
-	return PhysicsAccelBase * (Spd / FMath::Max(1.f, Str));
-}
-
-void ABallEnemy::ApplyForce2D(const FVector& DirNorm, float Scale)
-{
-	if (!SphereComponent || DirNorm.IsNearlyZero()) return;
-
-	const float Accel = ComputeAccelFromAttributes() * Scale;
-	SphereComponent->WakeAllRigidBodies();
-	SphereComponent->AddForce(DirNorm * Accel, NAME_None, true); // bAccelChange = true
-
-	if (TorqueScale > 0.f)
-	{
-		const FVector Up = FVector::UpVector;
-		const FVector TorqueAxis = FVector::CrossProduct(Up, DirNorm).GetSafeNormal();
-		SphereComponent->AddTorqueInRadians(TorqueAxis * TorqueScale, NAME_None, true);
-	}
-}
-
-void ABallEnemy::ApplyBraking2D()
-{
-	if (!SphereComponent) return;
-
-	const FVector V = SphereComponent->GetPhysicsLinearVelocity();
-	const FVector V2D(V.X, V.Y, 0.f);
-	if (V2D.SizeSquared() > 10.f)
-	{
-		SphereComponent->AddForce(-V2D * PhysicsBrakeAccel, NAME_None, true);
-	}
-}
-
 void ABallEnemy::Tick(float DeltaTime)
 {
-	if (bConsumed) return;
-	Super::Tick(DeltaTime);
+	// Uwaga: podajemy TYLKO kierunek, a bazowa klasa wykona AddForce/hamowanie/cap
+    if (bConsumed) { Super::Tick(DeltaTime); return; }
 
-	if (!PlayerPawn.IsValid()) { ApplyBraking2D(); return; }
+    FVector MoveDir = FVector::ZeroVector;
 
-	const float MyStrength = AttributeSet ? AttributeSet->GetStrength() : 0.f;
-	const UAbilitySystemComponent* PlayerASC = PlayerPawn->FindComponentByClass<UAbilitySystemComponent>();
-	if (!PlayerASC) { ApplyBraking2D(); return; }
+    if (!PlayerPawn.IsValid())
+    {
+        // brak celu → brak inputu; baza wyhamuje
+        Super::Tick(DeltaTime);
+        return;
+    }
 
-	const float PlayerStrength = PlayerASC->GetNumericAttribute(UBallAttributeSetBase::GetStrengthAttribute());
+    // Atrybuty
+    const float MyStrength = AttributeSet ? AttributeSet->GetStrength() : 0.f;
 
-	const FVector ToPlayerDir = Dir2D(GetActorLocation(), PlayerPawn->GetActorLocation());
-	if (ToPlayerDir.IsNearlyZero()) { ApplyBraking2D(); return; }
+    const UAbilitySystemComponent* PlayerASC = PlayerPawn->FindComponentByClass<UAbilitySystemComponent>();
+    if (!PlayerASC)
+    {
+        Super::Tick(DeltaTime);
+        return;
+    }
 
-	const float Dist = FVector::Dist2D(GetActorLocation(), PlayerPawn->GetActorLocation());
+    const float PlayerStrength = PlayerASC->GetNumericAttribute(UBallAttributeSetBase::GetStrengthAttribute());
 
-	// Histereza decyzji
-	const bool StrongerEnough = (MyStrength > PlayerStrength + StrengthHysteresis);
-	const bool WeakerEnough = (MyStrength < PlayerStrength - StrengthHysteresis);
+    const FVector ToPlayerDir = Dir2D(GetActorLocation(), PlayerPawn->GetActorLocation());
+    if (ToPlayerDir.IsNearlyZero())
+    {
+        Super::Tick(DeltaTime);
+        return;
+    }
 
-	switch (MoveState)
-	{
-	case EEnemyAIState::Idle:
-		if (StrongerEnough) MoveState = EEnemyAIState::Chase;
-		else if (WeakerEnough) MoveState = EEnemyAIState::Flee;
-		break;
+    const float Dist = FVector::Dist2D(GetActorLocation(), PlayerPawn->GetActorLocation());
 
-	case EEnemyAIState::Chase:
-		if (!StrongerEnough || Dist < StopChaseDistance)
-			MoveState = EEnemyAIState::Idle;
-		break;
+    // Histereza 
+    const bool StrongerEnough = (MyStrength > PlayerStrength + StrengthHysteresis);
+    const bool WeakerEnough   = (MyStrength < PlayerStrength - StrengthHysteresis);
 
-	case EEnemyAIState::Flee:
-		if (!WeakerEnough || Dist > (FleeDistance + DistanceHysteresis))
-			MoveState = EEnemyAIState::Idle;
-		break;
-	}
+    switch (MoveState)
+    {
+    case EEnemyAIState::Idle:
+        if (StrongerEnough)        MoveState = EEnemyAIState::Chase;
+        else if (WeakerEnough)     MoveState = EEnemyAIState::Flee;
+        break;
 
-	if (MoveState == EEnemyAIState::Chase)
-	{
-		ApplyForce2D(ToPlayerDir, 1.f);
-	}
-	else if (MoveState == EEnemyAIState::Flee)
-	{
-		ApplyForce2D(-ToPlayerDir, 1.f);
-	}
-	else
-	{
-		ApplyBraking2D();
-	}
+    case EEnemyAIState::Chase:
+        if (!StrongerEnough || Dist < StopChaseDistance)
+            MoveState = EEnemyAIState::Idle;
+        break;
+
+    case EEnemyAIState::Flee:
+        if (!WeakerEnough || Dist > (FleeDistance + DistanceHysteresis))
+            MoveState = EEnemyAIState::Idle;
+        break;
+    }
+
+    if (MoveState == EEnemyAIState::Chase)
+    {
+        MoveDir = ToPlayerDir;
+    }
+    else if (MoveState == EEnemyAIState::Flee)
+    {
+        MoveDir = -ToPlayerDir;
+    }
+    // Idle → MoveDir = Zero → baza zahamuje
+
+    if (!MoveDir.IsNearlyZero())
+    {
+        AddMoveInput2D(MoveDir, 1.f);  // przekazujemy kierunek do bazy
+    }
+    // UWAGA: nie wywołujemy tu AddForce – zrobi to baza
+
+    Super::Tick(DeltaTime); // baza przetworzy PendingMoveInput2D (AddForce/Brake/Cap)
 }
 
 void ABallEnemy::BeEaten(class ABallPlayer* Player)
