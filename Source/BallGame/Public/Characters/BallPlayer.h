@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Characters/BallPawnBase.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "BallPlayer.generated.h"
 
 /**
@@ -19,6 +21,9 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(VisibleAnywhere) USpringArmComponent* Camera;
+	UPROPERTY(VisibleAnywhere) UCameraComponent* OrthoCamera;
+	
 	// Docelowa pozycja
 	void SetMoveTarget(const FVector& TargetLocation);
 	void StopMoveInput();

@@ -16,6 +16,29 @@ class BALLGAME_API ABallGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+
+	UFUNCTION(BlueprintPure, Category="Rules")
+	int32 GetEdibleRemaining() const { return EdibleEnemiesCount; }
+
+	UFUNCTION(BlueprintPure, Category="Rules")
+	int32 GetEdibleTotal() const { return TotalEdibleSpawned; }
+
+	UFUNCTION(BlueprintPure, Category="Rules")
+	int32 GetEnemiesToWin() const { return EnemiesToWin;}
+
+	// Ile do tej pory zjedzono jadalnych (Red/Yellow)
+	UFUNCTION(BlueprintPure, Category="Rules")
+	int32 GetEatenSoFar() const { return FMath::Max(0, TotalEdibleSpawned - EdibleEnemiesCount); }
+
+	// Ile jeszcze trzeba zjeść, żeby wygrać (uwzględnia EnemiesToWin; dla 0 => tryb “zjedz wszystkich”)
+	UFUNCTION(BlueprintPure, Category="Rules")
+	int32 GetRemainingToWin() const
+	{
+		if (EnemiesToWin <= 0) return EdibleEnemiesCount; // tryb “zjedz wszystkich”
+		const int32 Eaten = GetEatenSoFar();
+		return FMath::Max(0, EnemiesToWin - Eaten);
+	}
+	
 	UFUNCTION(BlueprintCallable)
 	void PlayerLoss();
 
@@ -33,11 +56,18 @@ protected:
 
 private:
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Rules", meta=(AllowPrivateAccess="true"))
 	int32 EdibleEnemiesCount = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Rules", meta=(AllowPrivateAccess="true"))
+	int32 TotalEdibleSpawned = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Rules", meta=(AllowPrivateAccess="true"))
 	bool bSpawningFinished = false;
+	
 	bool bHasEnded = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Rules")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rules", meta=(AllowPrivateAccess="true"))
 	int32 EnemiesToWin = 20;
 
 	void CheckWinCondition();

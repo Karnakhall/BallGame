@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/TriggerBox.h"
 #include "EnemySpawnManager.generated.h"
 
 class ABallEnemy;
@@ -59,6 +60,29 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning | Timing")
 	int32 TotalEnemiesToSpawn = -1;
+
+	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
+	TWeakObjectPtr<ATriggerBox> SpawnBounds;
+
+	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
+	float EdgePadding = 150.f;
+	
+	// 1) Referencja do podłogi (wskazujesz w edytorze aktora Floor/Plane/Landscape)
+	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
+	TWeakObjectPtr<AActor> FloorActor;
+	
+	// ile prób losowania zanim zrezygnujemy/zaklamrujemy
+	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
+	int32 MaxSpawnAttempts = 16;
+
+	// jeśli true – zamiast odrzucać, klamruj do pudełka
+	UPROPERTY(EditAnywhere, Category="Spawning | Bounds")
+	bool bClampOutsideToFloor = true;
+
+	// Debug
+	UPROPERTY(EditAnywhere, Category="Spawning | Debug")
+	bool bDrawFloorBounds = false;
+
 	
 private:
 	void SpawnEnemy();
@@ -67,4 +91,16 @@ private:
 
 	TWeakObjectPtr<ABallGameModeBase> GameModeRef;
 	int32 SpawnedSoFar = 0;
+
+	FBox CachedFloorBounds;
+	bool bFloorBoundsValid = false;
+	float FloorTopZ = 0.f; 
+
+	void CacheFloorBounds();
+	bool IsInsideFloor2D(const FVector& Loc) const;
+	FVector ClampToFloor2D(FVector Loc) const;
+	
+	bool IsInsideBounds2D(const FVector& Loc) const;
+	FVector ClampToBounds2D(FVector Loc) const;
+	bool GetRandomSpawnLocation(FVector& OutLocation, float& OutDistanceFromPlayer); 
 };

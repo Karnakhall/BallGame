@@ -13,11 +13,12 @@ void ABallPlayerController::BeginPlay()
 
 	ControlledBall = Cast<ABallPlayer>(GetPawn());
 
-	ACameraActor* MainCamera = Cast<ACameraActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass()));
+	SetViewTarget(ControlledBall);
+	/*ACameraActor* MainCamera = Cast<ACameraActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACameraActor::StaticClass()));
 	if (MainCamera)
 	{
 		SetViewTarget(MainCamera);
-	}
+	}*/
 }
 
 void ABallPlayerController::SetupInputComponent()

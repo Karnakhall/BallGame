@@ -14,6 +14,28 @@
 ABallPlayer::ABallPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	Camera = CreateDefaultSubobject<USpringArmComponent>("Camera");
+	Camera->SetupAttachment(RootComponent);
+	Camera->TargetArmLength = 1500.f; // wysokość “od góry” (dobierz)
+	Camera->bDoCollisionTest = false; // w 2D niepotrzebne
+	Camera->bUsePawnControlRotation = false;
+	Camera->bInheritPitch = false;
+	Camera->bInheritYaw = false;
+	Camera->bInheritRoll = false;
+	Camera->SetUsingAbsoluteRotation(true); // nie obracaj wraz z graczem
+	Camera->SetRelativeRotation(FRotator(-90,0,0));// patrz w dół
+	// Nie dziedzicz skali od gracza (bo rośnie):
+	Camera->SetAbsolute(false, true, true);
+
+	Camera->bEnableCameraLag = true;
+	Camera->CameraLagSpeed = 12.f; // 8–20 zwykle ok
+
+	OrthoCamera = CreateDefaultSubobject<UCameraComponent>("OrthoCamera");
+	OrthoCamera->SetupAttachment(Camera, USpringArmComponent::SocketName);
+	OrthoCamera->SetProjectionMode(ECameraProjectionMode::Orthographic);
+	OrthoCamera->OrthoWidth = 4000.f; // dobierz pod scenę
+	OrthoCamera->bUsePawnControlRotation = false;
 }
 
 void ABallPlayer::Tick(float DeltaTime)
